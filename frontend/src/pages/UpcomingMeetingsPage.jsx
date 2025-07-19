@@ -51,7 +51,7 @@ export default function UpcomingMeetingsPage() {
 
   const handleCancel = async (id) => {
     try {
-      await api.delete(`/meetings/${id}`);
+      await api.delete(`/api/meetings/${id}`);
       setMeetings((prev) => prev.filter((m) => m._id !== id));
     } catch (err) {
       console.error("Cancel failed", err);

@@ -83,7 +83,7 @@ export default function EditMeetingPage() {
 
     try {
       setCancelLoading(true);
-      await api.delete(`/meetings/${id}`);
+      await api.delete(`/api/meetings/${id}`);
       navigate("/upcoming-meetings");
     } catch (err) {
       console.error("Failed to cancel meeting", err);

@@ -41,7 +41,7 @@ export default function CreateMeetingPage() {
     }
 
     try {
-      const res = await api.post("/meetings", {
+      const res = await api.post("/api/meetings", {
         title,
         datetime,
         location,

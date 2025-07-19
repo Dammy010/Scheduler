@@ -12,7 +12,7 @@ export default function DashboardPage() {
   useEffect(() => {
     const fetchMeetings = async () => {
       try {
-        const res = await api.get("/meetings/upcoming");
+        const res = await api.get("/api/meetings/upcoming");
         setMeetings(res.data);
       } catch (err) {
         console.error("Failed to load meetings", err);
