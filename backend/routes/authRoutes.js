@@ -4,7 +4,7 @@ const { registerUser, loginUser, logoutUser, getMe } = require('../controllers/a
 
 router.post('/signup', registerUser);
 router.post('/login', loginUser);
-router.post('/logout', logoutUser); 
+router.get('/logout', logoutUser); 
 router.get('/me', getMe);
 
 module.exports = router;
