@@ -13,9 +13,17 @@ export default function DashboardPage() {
     const fetchMeetings = async () => {
       try {
         const res = await api.get("/api/meetings/upcoming");
-        setMeetings(res.data);
+        const data = res.data;
+
+        if (Array.isArray(data)) {
+          setMeetings(data);
+        } else {
+          console.warn("Expected meetings to be an array but got:", data);
+          setMeetings([]);
+        }
       } catch (err) {
         console.error("Failed to load meetings", err);
+        setMeetings([]);
       } finally {
         setLoading(false);
       }
@@ -24,22 +32,26 @@ export default function DashboardPage() {
     fetchMeetings();
   }, []);
 
-  const createdCount = meetings.filter((meeting) => {
-    const creatorId = meeting.creator?._id || meeting.creator;
-    return user?._id && creatorId?.toString() === user._id.toString();
-  }).length;
+  const createdCount = Array.isArray(meetings)
+    ? meetings.filter((meeting) => {
+        const creatorId = meeting.creator?._id || meeting.creator;
+        return user?._id && creatorId?.toString() === user._id.toString();
+      }).length
+    : 0;
 
-  const participantCount = meetings.filter((meeting) => {
-    const creatorId = meeting.creator?._id || meeting.creator;
-    return (
-      user?._id &&
-      creatorId?.toString() !== user._id.toString() &&
-      meeting.participants?.some((p) => {
-        const participantId = p?.user?._id || p?.user;
-        return participantId?.toString() === user._id.toString();
-      })
-    );
-  }).length;
+  const participantCount = Array.isArray(meetings)
+    ? meetings.filter((meeting) => {
+        const creatorId = meeting.creator?._id || meeting.creator;
+        return (
+          user?._id &&
+          creatorId?.toString() !== user._id.toString() &&
+          meeting.participants?.some((p) => {
+            const participantId = p?.user?._id || p?.user;
+            return participantId?.toString() === user._id.toString();
+          })
+        );
+      }).length
+    : 0;
 
   return (
     <div className="min-h-screen bg-gray-50">
