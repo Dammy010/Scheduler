@@ -13,7 +13,10 @@ export default function Navbar() {
     logout();
     setDropdownOpen(false);
     setMenuOpen(false);
-    navigate("/");
+    setTimeout(() => {
+      navigate("/");
+    })
+    
   };
 
   return (
