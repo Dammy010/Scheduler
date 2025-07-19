@@ -11,6 +11,7 @@ dotenv.config();
 connectDB();
 
 const app = express();
+app.use(cookieParser());
 
 const allowedOrigins = [
   "http://localhost:5173",
