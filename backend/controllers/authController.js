@@ -1,22 +1,28 @@
 const jwt = require("jsonwebtoken");
-const User = require("../models/User");
+const connectDB = require("../../lib/connectDB");
+const User = require("../models/User"); // Ensure loaded only once
 
-const generateToken = (res, userId) => {
-  const token = jwt.sign({ userId }, process.env.JWT_SECRET, {
+// Generate JWT token
+const generateToken = (userId) => {
+  return jwt.sign({ userId }, process.env.JWT_SECRET, {
     expiresIn: "7d",
-  });
-
-  res.cookie("jwt", token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    maxAge: 7 * 24 * 60 * 60 * 1000, 
   });
 };
 
+// @route   POST /api/auth/signup
 const registerUser = async (req, res) => {
+  await connectDB();
+
+  if (req.method !== "POST") {
+    return res.status(405).json({ message: "Method not allowed" });
+  }
+
   try {
     const { name, email, password } = req.body;
+
+    if (!name || !email || !password) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
 
     const userExists = await User.findOne({ email });
     if (userExists) {
@@ -25,60 +31,77 @@ const registerUser = async (req, res) => {
 
     const user = await User.create({ name, email, password });
 
-    if (user) {
-      generateToken(res, user._id);
-      return res.status(201).json({
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-      });
-    }
+    const token = generateToken(user._id);
 
-    res.status(400).json({ message: "Invalid user data" });
+    return res.status(201).json({
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      token,
+    });
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };
 
+// @route   POST /api/auth/login
 const loginUser = async (req, res) => {
+  await connectDB();
+
+  if (req.method !== "POST") {
+    return res.status(405).json({ message: "Method not allowed" });
+  }
+
   try {
     const { email, password } = req.body;
 
     const user = await User.findOne({ email });
 
-    if (user && (await user.matchPassword(password))) {
-      generateToken(res, user._id);
-      return res.status(200).json({
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-      });
+    if (!user || !(await user.matchPassword(password))) {
+      return res.status(401).json({ message: "Invalid email or password" });
     }
 
-    res.status(401).json({ message: "Invalid credentials" });
+    const token = generateToken(user._id);
+
+    return res.status(200).json({
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      token,
+    });
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };
 
-const logoutUser = (req, res) => {
-  try {
-    res.clearCookie("jwt", {
-      httpOnly: true,
-      sameSite: "Lax",
-      secure: process.env.NODE_ENV === "production",
-    });
+// @route   POST /api/auth/logout
+const logoutUser = async (req, res) => {
+  if (req.method !== "POST") {
+    return res.status(405).json({ message: "Method not allowed" });
+  }
 
+  try {
     return res.status(200).json({ message: "Logged out successfully" });
   } catch (error) {
     return res.status(500).json({ message: "Logout failed", error: error.message });
   }
 };
 
-
+// @route   GET /api/auth/me
 const getMe = async (req, res) => {
+  await connectDB();
+
+  if (req.method !== "GET") {
+    return res.status(405).json({ message: "Method not allowed" });
+  }
+
   try {
-    const user = await User.findById(req.user._id).select("-password");
+    const token = req.headers.authorization?.split(" ")[1];
+    if (!token) return res.status(401).json({ message: "No token provided" });
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(decoded.userId).select("-password");
+
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
