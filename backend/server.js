@@ -13,8 +13,19 @@ connectDB();
 
 const app = express();
 
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://scheduler-kolz.vercel.app"
+];
+
 app.use(cors({
-  origin: process.env.CLIENT_URL || "https://scheduler-kolz.vercel.app",
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
   credentials: true,
 }));
 
@@ -27,7 +38,6 @@ app.use("/api/meetings", meetingRoutes);
 app.get("/", (req, res) => {
   res.send("Scheduler backend is running ✅");
 });
-
 
 app.use(notFound);
 app.use(errorHandler);
