@@ -63,18 +63,18 @@ const loginUser = async (req, res) => {
 
 const logoutUser = (req, res) => {
   try {
-    res.cookie("jwt", "", {
+    res.clearCookie("jwt", {
       httpOnly: true,
-      expires: new Date(0),
-      sameSite: "lax",
+      sameSite: "Lax",
       secure: process.env.NODE_ENV === "production",
     });
 
-    res.status(200).json({ message: "Logged out successfully" });
+    return res.status(200).json({ message: "Logged out successfully" });
   } catch (error) {
-    res.status(500).json({ message: "Logout failed", error: error.message });
+    return res.status(500).json({ message: "Logout failed", error: error.message });
   }
 };
+
 
 const getMe = async (req, res) => {
   try {

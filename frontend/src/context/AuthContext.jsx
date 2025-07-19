@@ -22,15 +22,16 @@ export const AuthProvider = ({ children }) => {
     fetchUser();
   }, []);
 
-  const logout = async () => {
-    try {
-      await api.post("/api/auth/logout");
-    } catch (err) {
-      console.error("Logout failed", err);
-    }
+ const logout = async () => {
+  try {
+    await api.post("/api/auth/logout");
     setUser(null);
-    window.location.href = "/"; 
-  };
+    navigate("/");
+  } catch (err) {
+    console.error("Logout failed", err);
+  }
+};
+
 
   return (
     <AuthContext.Provider
