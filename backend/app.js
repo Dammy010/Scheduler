@@ -19,7 +19,7 @@ app.use(cookieParser());
 // Allowed frontend origins
 const allowedOrigins = [
   "http://localhost:5173",
-  "https://scheduler-kolz.vercel.app"
+  "https://scheduler-three-self.vercel.app"
 ];
 
 // CORS setup
