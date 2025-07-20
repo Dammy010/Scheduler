@@ -18,9 +18,9 @@ export default function SignupPage() {
     setLoading(true);
 
     try {
-      const res = await api.get("/api/auth/signup", { name, email, password });
+      const res = await api.post("/api/auth/signup", { name, email, password });
       console.log("Signup successful", res.data);
-      navigate("/"); 
+      navigate("/");
     } catch (err) {
       setError(err.response?.data?.message || "Signup failed");
     } finally {
