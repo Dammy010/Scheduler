@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../services/api";
 import { Eye, EyeOff } from "lucide-react";
+import { useAuth } from "../context/AuthContext";
 
 export default function SignupPage() {
   const [name, setName] = useState("");
@@ -10,6 +11,8 @@ export default function SignupPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+
+  const { setUser } = useAuth(); // Removed login, use setUser
   const navigate = useNavigate();
 
   const handleSignup = async (e) => {
@@ -19,8 +22,18 @@ export default function SignupPage() {
 
     try {
       const res = await api.post("/api/auth/signup", { name, email, password });
-      console.log("Signup successful", res.data);
-      navigate("/");
+      const { token } = res.data;
+
+      // Save token and set header
+      localStorage.setItem("token", token);
+      api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+
+      // Fetch user info and update auth context
+      const meRes = await api.get("/api/auth/me");
+      setUser(meRes.data);
+
+      // Navigate to dashboard
+      navigate("/dashboard");
     } catch (err) {
       setError(err.response?.data?.message || "Signup failed");
     } finally {
@@ -42,7 +55,6 @@ export default function SignupPage() {
 
         <input
           type="text"
-          name="name"
           placeholder="Full Name"
           className="w-full mb-4 px-4 py-2 border rounded"
           value={name}
@@ -52,7 +64,6 @@ export default function SignupPage() {
 
         <input
           type="email"
-          name="email"
           placeholder="Email"
           autoComplete="email"
           className="w-full mb-4 px-4 py-2 border rounded"
@@ -64,7 +75,6 @@ export default function SignupPage() {
         <div className="relative mb-6">
           <input
             type={showPassword ? "text" : "password"}
-            name="password"
             placeholder="Password"
             autoComplete="new-password"
             className="w-full px-4 py-2 border rounded pr-10"

@@ -10,27 +10,36 @@ export const AuthProvider = ({ children }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      setLoading(false);
+      return;
+    }
+
+    // Set token on axios headers
+    api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+
     const fetchUser = async () => {
       try {
         const res = await api.get("/api/auth/me");
         setUser(res.data);
       } catch {
+        localStorage.removeItem("token");
+        delete api.defaults.headers.common["Authorization"];
         setUser(null);
       } finally {
         setLoading(false);
       }
     };
+
     fetchUser();
   }, []);
 
-  const logout = async () => {
-    try {
-      await api.get("/api/auth/logout");
-      setUser(null);
-      navigate("/"); 
-    } catch (err) {
-      console.error("Logout failed", err);
-    }
+  const logout = () => {
+    localStorage.removeItem("token");
+    delete api.defaults.headers.common["Authorization"];
+    setUser(null);
+    navigate("/");
   };
 
   return (

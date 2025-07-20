@@ -13,7 +13,7 @@ export default function UpcomingMeetingsPage() {
   useEffect(() => {
     const fetchMeetings = async () => {
       try {
-        const res = await api.get("/meetings/upcoming");
+        const res = await api.get("/api/meetings/upcoming");
         const upcoming = res.data.filter(
           (m) =>
             new Date(m.datetime) > new Date() &&
@@ -31,7 +31,7 @@ export default function UpcomingMeetingsPage() {
 
   const handleResponse = async (id, status) => {
     try {
-      await api.put(`/meetings/${id}/respond`, { status });
+      await api.put(`/api/meetings/${id}/respond`, { status });
       setMeetings((prev) =>
         prev.map((m) =>
           m._id === id

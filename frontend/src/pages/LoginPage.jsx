@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
 import api from "../services/api";
 import { useAuth } from "../context/AuthContext";
@@ -9,21 +9,32 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const { setUser } = useAuth(); 
+  const { setUser } = useAuth();
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    setLoading(true);
     setError(null);
-    try {
-      const res = await api.post("/api/auth/login", { email, password });
 
+    try {
+      // Login and get token
+      const { data } = await api.post("/api/auth/login", { email, password });
+      const { token } = data;
+
+      localStorage.setItem("token", token);
+      api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+
+      // Fetch authenticated user
+      const res = await api.get("/api/auth/me");
       setUser(res.data);
-      console.log("Login successful", res.data);
 
       navigate("/dashboard");
     } catch (err) {
       setError(err.response?.data?.message || "Login failed");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -35,7 +46,9 @@ export default function LoginPage() {
       >
         <h2 className="text-2xl font-bold mb-6 text-center">Login</h2>
 
-        {error && <p className="text-red-600 text-sm mb-4 text-center">{error}</p>}
+        {error && (
+          <p className="text-red-600 text-sm mb-4 text-center">{error}</p>
+        )}
 
         <input
           type="email"
@@ -65,16 +78,17 @@ export default function LoginPage() {
 
         <button
           type="submit"
+          disabled={loading}
           className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
         >
-          Login
+          {loading ? "Logging in..." : "Login"}
         </button>
 
         <p className="text-center text-sm mt-4">
           Don&apos;t have an account?{" "}
-          <a href="/signup" className="text-blue-600 hover:underline">
+          <Link to="/signup" className="text-blue-600 hover:underline">
             Sign up
-          </a>
+          </Link>
         </p>
       </form>
     </div>

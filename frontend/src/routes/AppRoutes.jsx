@@ -13,9 +13,11 @@ import NotFoundPage from "../pages/NotFoundPage";
 
 function PrivateRoute({ children }) {
   const { user, loading } = useAuth();
+  console.log("PrivateRoute: user =", user, "loading =", loading);
   if (loading) return <div className="p-4 text-center">Loading...</div>;
   return user ? children : <Navigate to="/login" />;
 }
+
 
 const AppRoutes = () => (
   <Routes>
